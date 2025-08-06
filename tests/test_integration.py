@@ -37,7 +37,7 @@ def test_config_loading_integration():
     
     try:
         # Test that config can be loaded without errors
-        from mcp_wrapper.config import ConfigManager
+        from mcp_http_bridge.config import ConfigManager
         
         manager = ConfigManager(config_path)
         config = manager.load_config()

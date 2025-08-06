@@ -5,8 +5,8 @@ import tempfile
 from pathlib import Path
 import pytest
 
-from mcp_wrapper.config import ConfigManager
-from mcp_wrapper.models import MCPWrapperConfig, WrapperSettings
+from mcp_http_bridge.config import ConfigManager
+from mcp_http_bridge.models import MCPWrapperConfig, WrapperSettings
 
 
 def test_config_manager_load_valid_config():

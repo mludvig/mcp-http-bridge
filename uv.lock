@@ -471,14 +471,12 @@ wheels = [
 ]
 
 [[package]]
-name = "mcp-wrapper"
+name = "mcp-http-bridge"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastmcp" },
     { name = "pydantic" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
 ]
 
 [package.optional-dependencies]
@@ -491,10 +489,8 @@ dev = [
 requires-dist = [
     { name = "fastmcp", specifier = ">=0.3.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
-    { name = "pytest", specifier = ">=8.4.1" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
-    { name = "pytest-asyncio", specifier = ">=1.1.0" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.21.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.4.1" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=1.1.0" },
 ]
 provides-extras = ["dev"]
 

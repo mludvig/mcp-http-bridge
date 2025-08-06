@@ -28,7 +28,7 @@ both `npx` and `uvx` runtimes available.
 Use `fastmcp` to listen on the network port if required. Or pass through
 from network to stdio if it's easier. You will have to understand the MCP
 protocol to some extent to make an informed decision on how to implement the
-mcp-wrapper.
+`mcp-http-bridge`.
 
 ## Developer notes
 

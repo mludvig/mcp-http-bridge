@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  mcp-wrapper:
+  mcp-http-bridge:
     build: .
     ports:
       - "8000:8000"

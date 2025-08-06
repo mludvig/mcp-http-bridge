@@ -1,20 +1,18 @@
 [project]
-name = "mcp-wrapper"
+name = "mcp-http-bridge"
 version = "0.1.0"
-description = "Wrapper for MCP tools that exposes stdio protocol via streamable-http"
+description = "Bridge for stdio-only MCP tools that exposes their stdio protocol via streamable-http"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "fastmcp>=0.3.0",
     "pydantic>=2.0.0",
-    "pytest>=8.4.1",
-    "pytest-asyncio>=1.1.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
 ]
 
 [build-system]
@@ -22,7 +20,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/mcp_wrapper"]
+packages = ["src/mcp_http_bridge"]
 
 [project.scripts]
-mcp-wrapper = "mcp_wrapper.main:main"
+mcp-http-bridge = "mcp_http_bridge.main:main"
