@@ -1,10 +1,21 @@
 [project]
 name = "mcp-wrapper"
 version = "0.1.0"
-description = "Add your description here"
+description = "Wrapper for MCP tools that exposes stdio protocol via streamable-http"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "fastmcp>=0.3.0",
+    "pydantic>=2.0.0",
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+]
 
 [build-system]
 requires = ["hatchling"]

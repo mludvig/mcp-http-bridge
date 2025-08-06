@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  mcp-wrapper:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app/src
+      - LOG_LEVEL=INFO
+    volumes:
+      # Mount custom config if needed
+      - ./config.json:/app/config.json:ro
+      # Mount any additional directories that MCP servers might need
+      - /tmp:/tmp
+    restart: unless-stopped
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/mcp"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - mcp-wrapper
+    restart: unless-stopped
+    profiles:
+      - proxy
