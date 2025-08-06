@@ -14,17 +14,17 @@ RUN pip install uv
 WORKDIR /app
 
 # Copy project files
-COPY pyproject.toml uv.lock ./
+COPY pyproject.toml uv.lock README.md ./
 COPY src/ ./src/
 
 # Install Python dependencies
-RUN uv pip install --system -e .
+RUN uv sync
 
 # Copy configuration file
 COPY config.json ./
 
 # Create non-root user
-RUN groupadd -r mcp && useradd -r -g mcp -s /bin/false mcp
+RUN groupadd -r mcp && useradd -m -g mcp -s /bin/false mcp
 RUN chown -R mcp:mcp /app
 USER mcp
 
@@ -36,5 +36,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/mcp || exit 1
 
 # Set Python path and run the server
-ENV PYTHONPATH=/app/src
-CMD ["python", "-m", "mcp_wrapper.main", "config.json", "--host", "0.0.0.0"]
+# ENV PYTHONPATH=/app/src
+CMD ["uv", "run", "mcp-wrapper", "config.json", "--host", "0.0.0.0"]
