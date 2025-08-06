@@ -27,7 +27,7 @@ class MCPWrapperServer:
         self.proxy: FastMCP | None = None
         self._shutdown_event = asyncio.Event()
         
-    async def setup(self) -> None:
+    async def setup(self, test_connection: bool = True) -> None:
         """Setup the proxy server."""
         # Load configuration
         config = self.config_manager.load_config()
@@ -49,7 +49,39 @@ class MCPWrapperServer:
             name="MCP-Wrapper-Proxy"
         )
         
+        # Test the connection during startup to catch issues early
+        if test_connection:
+            logger.info("Testing MCP server connection...")
+            try:
+                # Create a temporary client to test the connection
+                from fastmcp import Client
+                test_client = Client(transport)
+                
+                # Set a reasonable timeout for the startup test
+                logger.info(f"Starting MCP server: {server_config.command} {' '.join(server_config.args)}")
+                
+                # Use asyncio.wait_for to add a timeout
+                await asyncio.wait_for(
+                    self._test_connection(test_client),
+                    timeout=30.0  # 30 second timeout
+                )
+                logger.info("MCP server connection test successful")
+            except asyncio.TimeoutError:
+                logger.error(f"MCP server startup timed out after 30 seconds")
+                logger.error(f"Command: {server_config.command} {' '.join(server_config.args)}")
+                logger.warning("The server will continue starting, but the MCP server may not be ready immediately")
+            except Exception as e:
+                logger.error(f"Failed to connect to MCP server during startup: {e}")
+                logger.error(f"Command: {server_config.command} {' '.join(server_config.args)}")
+                raise RuntimeError(f"MCP server startup failed: {e}") from e
+        
         logger.info("MCP wrapper proxy setup complete")
+    
+    async def _test_connection(self, test_client):
+        """Test connection to the MCP server."""
+        async with test_client:
+            # Try to ping - this will start the subprocess and test the connection
+            await test_client.ping()
     
     async def start(self, settings: WrapperSettings) -> None:
         """Start the HTTP server."""
@@ -89,12 +121,12 @@ class MCPWrapperServer:
         logger.info("MCP wrapper server stopped")
 
 
-async def run_server(config_path: str | Path, settings: WrapperSettings) -> None:
+async def run_server(config_path: str | Path, settings: WrapperSettings, test_connection: bool = True) -> None:
     """Run the MCP wrapper server."""
     server = MCPWrapperServer(config_path)
     
     try:
-        await server.setup()
+        await server.setup(test_connection=test_connection)
         await server.start(settings)
     except Exception as e:
         logger.error(f"Failed to run server: {e}")

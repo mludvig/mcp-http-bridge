@@ -48,6 +48,12 @@ async def main_async():
         help="Logging level (default: INFO)"
     )
     
+    parser.add_argument(
+        "--no-test-connection",
+        action="store_true",
+        help="Skip testing MCP server connection during startup (default: test connection)"
+    )
+    
     args = parser.parse_args()
     
     # Validate config file exists
@@ -71,7 +77,8 @@ async def main_async():
     )
     
     # Run the server
-    await run_server(config_path, settings)
+    test_connection = not args.no_test_connection
+    await run_server(config_path, settings, test_connection=test_connection)
     return 0
 
 

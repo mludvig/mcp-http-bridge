@@ -7,6 +7,7 @@ A Python-based wrapper that bridges stdio-based MCP (Model Context Protocol) ser
 - **Pure Protocol Bridging**: Direct 1:1 mapping - no wrapper tools or indirection
 - **FastMCP Integration**: Uses FastMCP's proven proxy capabilities for robust HTTP handling
 - **Single Server Focus**: One MCP server per wrapper instance for simplicity and clarity
+- **Early Error Detection**: Tests MCP server connectivity during startup, not on first request
 - **Runtime Support**: Supports both `npx` (Node.js) and `uvx` (Python) MCP servers
 - **Docker Ready**: Complete containerization with both Node.js and Python runtimes
 - **Production Ready**: Comprehensive testing, logging, and error handling
@@ -39,6 +40,15 @@ uv sync
 uv run python -m mcp_wrapper.main config.json --host 127.0.0.1 --port 8000
 ```
 
+The wrapper will automatically test the connection to the MCP server during startup. If the server fails to start or respond, the wrapper will exit with a clear error message.
+
+**CLI Options:**
+- `--no-test-connection`: Skip the startup connection test (default: test enabled)
+- `--host`: Host to bind to (default: 127.0.0.1)
+- `--port`: Port to bind to (default: 8000)
+- `--path`: Base path for MCP endpoints (default: /mcp)
+- `--log-level`: Logging level (default: INFO)
+
 3. **Access via HTTP**: The backend MCP server's tools, resources, and prompts are now available at `http://127.0.0.1:8000/mcp` using streamable-HTTP protocol.
 
 ## 📖 How It Works
@@ -53,11 +63,51 @@ graph LR
 
 The MCP wrapper:
 1. **Spawns** the configured MCP server as a subprocess
-2. **Bridges** HTTP streamable requests to stdio JSON-RPC
-3. **Forwards** all backend capabilities directly (tools, resources, prompts)
-4. **Returns** responses via HTTP streamable protocol
+2. **Tests** the connection during startup (can be disabled with `--no-test-connection`)
+3. **Bridges** HTTP streamable requests to stdio JSON-RPC
+4. **Forwards** all backend capabilities directly (tools, resources, prompts)
+5. **Returns** responses via HTTP streamable protocol
 
 **No wrapper tools or indirection** - everything from the backend is exposed directly.
+
+## ⚡ Startup and Error Handling
+
+### Early Error Detection
+
+The wrapper tests the MCP server connection **during startup** (not on first request) to provide:
+
+- **Fast Failure**: Immediate feedback if the MCP server can't start
+- **Clear Errors**: Detailed error messages with the failing command
+- **Production Safety**: No broken services accepting traffic
+
+**Example startup with connection test:**
+```bash
+$ uv run mcp-wrapper config.json
+2025-08-06 14:01:19,002 - mcp_wrapper.server - INFO - Setting up proxy for MCP server: npx
+2025-08-06 14:01:19,020 - mcp_wrapper.server - INFO - Testing MCP server connection...
+2025-08-06 14:01:19,020 - mcp_wrapper.server - INFO - Starting MCP server: npx -y @modelcontextprotocol/server-memory
+2025-08-06 14:01:20,081 - mcp_wrapper.server - INFO - MCP server connection test successful
+2025-08-06 14:01:20,081 - mcp_wrapper.server - INFO - Starting MCP wrapper server on 127.0.0.1:8000/mcp
+```
+
+**Example startup failure:**
+```bash
+$ uv run mcp-wrapper bad-config.json
+2025-08-06 14:02:25,540 - mcp_wrapper.server - INFO - Starting MCP server: nonexistent-command --invalid
+2025-08-06 14:02:25,584 - mcp_wrapper.server - ERROR - Failed to connect to MCP server during startup: [Errno 2] No such file or directory: 'nonexistent-command'
+2025-08-06 14:02:25,585 - mcp_wrapper.server - ERROR - Command: nonexistent-command --invalid
+2025-08-06 14:02:25,585 - mcp_wrapper.main - ERROR - Server failed: MCP server startup failed
+```
+
+### Skip Connection Test
+
+For development or specific deployment scenarios, you can skip the startup test:
+
+```bash
+uv run mcp-wrapper config.json --no-test-connection
+```
+
+This will start the wrapper immediately without testing the MCP server connection first.
 
 ## 🛠️ Configuration Examples
 
