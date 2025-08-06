@@ -39,4 +39,4 @@ jobs:
         run: uv run pytest --cov=src --cov-report=term-missing
 
       - name: Test CLI
-        run: uv run mcp-http-bridge config-time.json
+        run: timeout --preserve-status 10s uv run mcp-http-bridge config-time.json 
