@@ -39,7 +39,7 @@ We can use the same `config.json` with `mcp-network-bridge`:
 **Run with Docker**:
 
 ```bash
-docker run --rm -it -p 8000:8000 -v $(pwd)/config.json:/app/config.json ghcr.io/mludvig/mcp-network-bridge
+docker run --rm -it -p 8000:8000 -v $(pwd)/config.json:/app/config.json ghcr.io/mludvig/mcp-http-bridge
 ```
 
 **Or use docker-compose**:
