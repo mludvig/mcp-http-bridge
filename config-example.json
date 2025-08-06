@@ -1,0 +1,9 @@
+{
+  "server": {
+    "command": "uvx",
+    "args": [
+      "mcp-server-time",
+      "--local-timezone=UTC"
+    ]
+  }
+}
