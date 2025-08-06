@@ -33,7 +33,7 @@ EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/mcp || exit 1
+    CMD curl -f http://localhost:8000/mcp/ || exit 1
 
 # Set Python path and run the server
 # ENV PYTHONPATH=/app/src

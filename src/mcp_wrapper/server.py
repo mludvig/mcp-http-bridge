@@ -1,142 +1,103 @@
-"""Main server module for MCP wrapper."""
+"""Main server implementation using FastMCP proxy for 1:1 protocol bridging."""
 
 import asyncio
 import logging
 import signal
 from pathlib import Path
-from typing import Optional
 
 from fastmcp import FastMCP
+from fastmcp.client.transports import StdioTransport
 
 from .config import ConfigManager
 from .models import WrapperSettings
-from .process_manager import ProcessManager
-from .protocol_bridge import MCPBridge, UnifiedMCPProxy
 
 logger = logging.getLogger(__name__)
 
 
 class MCPWrapperServer:
-    """Main MCP wrapper server that coordinates all components."""
+    """
+    MCP Wrapper server that provides 1:1 protocol bridging.
+    
+    Uses FastMCP's proxy capabilities to bridge stdio-based MCP servers
+    to HTTP streamable-http protocol without any indirection.
+    """
     
     def __init__(self, config_path: str | Path):
-        self.config_path = Path(config_path)
         self.config_manager = ConfigManager(config_path)
-        self.process_manager = ProcessManager()
-        self.bridge: Optional[MCPBridge] = None
-        self.unified_proxy: Optional[UnifiedMCPProxy] = None
+        self.proxy: FastMCP | None = None
         self._shutdown_event = asyncio.Event()
-    
-    async def initialize(self) -> None:
-        """Initialize the server with configuration."""
-        logger.info("Initializing MCP wrapper server...")
         
+    async def setup(self) -> None:
+        """Setup the proxy server."""
         # Load configuration
         config = self.config_manager.load_config()
+        server_config = config.server
         
-        # Set up process manager with server configurations
-        for name, server_config in config.mcpServers.items():
-            self.process_manager.add_server(name, server_config)
+        logger.info(f"Setting up proxy for MCP server: {server_config.command}")
         
-        # Create the bridge
-        self.bridge = MCPBridge(self.process_manager)
+        # Create StdioTransport for the backend MCP server
+        transport = StdioTransport(
+            command=server_config.command,
+            args=server_config.args,
+            env=server_config.env,
+            cwd=server_config.cwd
+        )
         
-        # Create unified proxy
-        server_configs = {name: cfg.model_dump() for name, cfg in config.mcpServers.items()}
-        self.unified_proxy = UnifiedMCPProxy(self.bridge, server_configs)
+        # Create FastMCP proxy that exposes the backend server directly
+        self.proxy = FastMCP.as_proxy(
+            transport,
+            name="MCP-Wrapper-Proxy"
+        )
         
-        logger.info(f"Initialized with {len(config.mcpServers)} MCP servers")
+        logger.info("MCP wrapper proxy setup complete")
     
-    async def start(self, settings: Optional[WrapperSettings] = None) -> None:
+    async def start(self, settings: WrapperSettings) -> None:
         """Start the HTTP server."""
-        if not self.unified_proxy:
-            raise RuntimeError("Server not initialized. Call initialize() first.")
+        if self.proxy is None:
+            raise RuntimeError("Server not setup. Call setup() first.")
         
-        if settings is None:
-            settings = self.config_manager.get_settings()
-        
-        logger.info(f"Starting MCP wrapper server on {settings.host}:{settings.port}{settings.path}")
-        
-        # Set up signal handlers for graceful shutdown
+        # Setup signal handlers for graceful shutdown
         for sig in (signal.SIGTERM, signal.SIGINT):
             signal.signal(sig, self._signal_handler)
         
+        logger.info(f"Starting MCP wrapper server on {settings.host}:{settings.port}{settings.path}")
+        
         try:
-            # Start the FastMCP server
-            await self.unified_proxy.run_async(
+            # Run the proxy with HTTP transport
+            await self.proxy.run_async(
                 transport="http",
                 host=settings.host,
                 port=settings.port,
                 path=settings.path,
-                log_level=settings.log_level.upper()
+                log_level=settings.log_level.lower()
             )
         except Exception as e:
             logger.error(f"Server error: {e}")
             raise
     
-    async def stop(self) -> None:
-        """Stop the server and clean up resources."""
-        logger.info("Stopping MCP wrapper server...")
-        
-        if self.bridge:
-            await self.bridge.cleanup()
-        
-        await self.process_manager.stop_all()
-        
-        self._shutdown_event.set()
-        logger.info("MCP wrapper server stopped")
-    
-    def _signal_handler(self, signum, frame):
+    def _signal_handler(self, signum: int, frame) -> None:
         """Handle shutdown signals."""
         logger.info(f"Received signal {signum}, initiating shutdown...")
-        asyncio.create_task(self.stop())
+        self._shutdown_event.set()
     
-    async def run_until_shutdown(self, settings: Optional[WrapperSettings] = None) -> None:
-        """Run the server until shutdown signal is received."""
-        try:
-            await self.initialize()
-            
-            # Start server in background
-            server_task = asyncio.create_task(self.start(settings))
-            
-            # Wait for shutdown signal
-            await self._shutdown_event.wait()
-            
-            # Cancel server task
-            server_task.cancel()
-            try:
-                await server_task
-            except asyncio.CancelledError:
-                pass
-                
-        except Exception as e:
-            logger.error(f"Server error: {e}")
-            raise
-        finally:
-            await self.stop()
+    async def stop(self) -> None:
+        """Stop the server gracefully."""
+        logger.info("Stopping MCP wrapper server...")
+        self._shutdown_event.set()
+        
+        # FastMCP handles cleanup automatically
+        logger.info("MCP wrapper server stopped")
 
 
-async def run_server(
-    config_path: str | Path,
-    host: str = "127.0.0.1",
-    port: int = 8000,
-    path: str = "/mcp",
-    log_level: str = "INFO"
-) -> None:
-    """Run the MCP wrapper server with the given settings."""
-    
-    # Set up logging
-    logging.basicConfig(
-        level=getattr(logging, log_level.upper()),
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    
-    settings = WrapperSettings(
-        host=host,
-        port=port,
-        path=path,
-        log_level=log_level
-    )
-    
+async def run_server(config_path: str | Path, settings: WrapperSettings) -> None:
+    """Run the MCP wrapper server."""
     server = MCPWrapperServer(config_path)
-    await server.run_until_shutdown(settings)
+    
+    try:
+        await server.setup()
+        await server.start(settings)
+    except Exception as e:
+        logger.error(f"Failed to run server: {e}")
+        raise
+    finally:
+        await server.stop()

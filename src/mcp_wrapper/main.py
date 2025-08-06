@@ -6,12 +6,13 @@ import logging
 from pathlib import Path
 
 from .server import run_server
+from .models import WrapperSettings
 
 logger = logging.getLogger(__name__)
 
 
-def main():
-    """Main entry point for the MCP wrapper CLI."""
+async def main_async():
+    """Async main function."""
     parser = argparse.ArgumentParser(
         description="MCP Wrapper - Expose stdio MCP servers via HTTP"
     )
@@ -54,17 +55,30 @@ def main():
     if not config_path.exists():
         print(f"Error: Configuration file not found: {config_path}")
         return 1
+
+    # Create settings from CLI arguments
+    settings = WrapperSettings(
+        host=args.host,
+        port=args.port,
+        path=args.path,
+        log_level=args.log_level
+    )
     
+    # Setup logging
+    logging.basicConfig(
+        level=getattr(logging, args.log_level),
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    
+    # Run the server
+    await run_server(config_path, settings)
+    return 0
+
+
+def main():
+    """Main entry point for the MCP wrapper CLI."""
     try:
-        # Run the server
-        asyncio.run(run_server(
-            config_path=config_path,
-            host=args.host,
-            port=args.port,
-            path=args.path,
-            log_level=args.log_level
-        ))
-        return 0
+        return asyncio.run(main_async())
     except KeyboardInterrupt:
         logger.info("Shutdown requested by user")
         return 0

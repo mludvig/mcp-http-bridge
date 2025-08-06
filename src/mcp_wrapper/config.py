@@ -28,7 +28,7 @@ class ConfigManager:
                 config_data = json.load(f)
             
             self._config = MCPWrapperConfig(**config_data)
-            logger.info(f"Loaded configuration with {len(self._config.mcpServers)} MCP servers")
+            logger.info(f"Loaded configuration for MCP server: {self._config.server.command}")
             return self._config
             
         except json.JSONDecodeError as e:
@@ -56,17 +56,14 @@ class ConfigManager:
             raise RuntimeError("Configuration not loaded. Call load_config() first.")
         return self._config
     
-    def list_servers(self) -> Dict[str, Any]:
-        """List all configured MCP servers with their details."""
+    def get_server_info(self) -> Dict[str, Any]:
+        """Get information about the configured MCP server."""
         if self._config is None:
             return {}
         
         return {
-            name: {
-                "command": server.command,
-                "args": server.args,
-                "has_env": bool(server.env),
-                "cwd": server.cwd
-            }
-            for name, server in self._config.mcpServers.items()
+            "command": self._config.server.command,
+            "args": self._config.server.args,
+            "has_env": bool(self._config.server.env),
+            "cwd": self._config.server.cwd
         }

@@ -14,11 +14,11 @@ class MCPServerConfig(BaseModel):
 
 
 class MCPWrapperConfig(BaseModel):
-    """Main configuration for the MCP wrapper."""
+    """Main configuration for the MCP wrapper - single server passthrough."""
     
-    mcpServers: Dict[str, MCPServerConfig] = Field(
+    server: MCPServerConfig = Field(
         ..., 
-        description="Dictionary of MCP server configurations"
+        description="MCP server configuration for 1:1 protocol bridging"
     )
 
 

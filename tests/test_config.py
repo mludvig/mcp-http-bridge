@@ -12,12 +12,10 @@ from mcp_wrapper.models import MCPWrapperConfig, WrapperSettings
 def test_config_manager_load_valid_config():
     """Test loading a valid configuration."""
     config_data = {
-        "mcpServers": {
-            "test-server": {
-                "command": "python",
-                "args": ["test.py"],
-                "env": {"TEST": "true"}
-            }
+        "server": {
+            "command": "python",
+            "args": ["test.py"],
+            "env": {"TEST": "true"}
         }
     }
     
@@ -30,10 +28,9 @@ def test_config_manager_load_valid_config():
         config = manager.load_config()
         
         assert isinstance(config, MCPWrapperConfig)
-        assert "test-server" in config.mcpServers
-        assert config.mcpServers["test-server"].command == "python"
-        assert config.mcpServers["test-server"].args == ["test.py"]
-        assert config.mcpServers["test-server"].env == {"TEST": "true"}
+        assert config.server.command == "python"
+        assert config.server.args == ["test.py"]
+        assert config.server.env == {"TEST": "true"}
     finally:
         Path(config_path).unlink()
 
@@ -86,19 +83,13 @@ def test_wrapper_settings_overrides():
     assert settings.log_level == "DEBUG"
 
 
-def test_config_manager_list_servers():
-    """Test listing servers from configuration."""
+def test_config_manager_get_server_info():
+    """Test getting server info from configuration."""
     config_data = {
-        "mcpServers": {
-            "server1": {
-                "command": "python",
-                "args": ["server1.py"]
-            },
-            "server2": {
-                "command": "node",
-                "args": ["server2.js"],
-                "env": {"NODE_ENV": "production"}
-            }
+        "server": {
+            "command": "python",
+            "args": ["server.py"],
+            "env": {"NODE_ENV": "production"}
         }
     }
     
@@ -109,13 +100,10 @@ def test_config_manager_list_servers():
     try:
         manager = ConfigManager(config_path)
         manager.load_config()
-        servers = manager.list_servers()
+        server_info = manager.get_server_info()
         
-        assert len(servers) == 2
-        assert "server1" in servers
-        assert "server2" in servers
-        assert servers["server1"]["command"] == "python"
-        assert servers["server1"]["has_env"] is False
-        assert servers["server2"]["has_env"] is True
+        assert server_info["command"] == "python"
+        assert server_info["args"] == ["server.py"]
+        assert server_info["has_env"] is True
     finally:
         Path(config_path).unlink()

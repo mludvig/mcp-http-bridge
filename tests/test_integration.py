@@ -25,11 +25,9 @@ def test_integration_example():
 def test_config_loading_integration():
     """Test that a real config file can be loaded properly."""
     config_data = {
-        "mcpServers": {
-            "echo-server": {
-                "command": "python",
-                "args": ["-c", "print('Echo server ready')"]
-            }
+        "server": {
+            "command": "python",
+            "args": ["-c", "print('Echo server ready')"]
         }
     }
     
@@ -44,8 +42,8 @@ def test_config_loading_integration():
         manager = ConfigManager(config_path)
         config = manager.load_config()
         
-        assert len(config.mcpServers) == 1
-        assert "echo-server" in config.mcpServers
+        assert config.server.command == "python"
+        assert config.server.args == ["-c", "print('Echo server ready')"]
         
     finally:
         Path(config_path).unlink()

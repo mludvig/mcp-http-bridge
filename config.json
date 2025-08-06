@@ -1,31 +1,9 @@
 {
-  "mcpServers": {
-    "sequential-thinking": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ]
-    },
-    "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "/tmp"
-      ]
-    },
-    "python-example": {
-      "command": "uvx",
-      "args": [
-        "mcp-server-git",
-        "--repository",
-        "."
-      ],
-      "env": {
-        "GIT_AUTHOR_NAME": "MCP Wrapper",
-        "GIT_AUTHOR_EMAIL": "mcp@example.com"
-      }
-    }
+  "server": {
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-sequential-thinking"
+    ]
   }
 }

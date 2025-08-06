@@ -13,22 +13,20 @@ import asyncio
 import tempfile
 from pathlib import Path
 
-from mcp_wrapper import run_server
+from mcp_wrapper import run_server, WrapperSettings
 
 
 async def example_usage():
     """Example of using MCP wrapper programmatically."""
     
-    # Create a simple test configuration
+    # Create a simple test configuration for sequential thinking server
     config = {
-        "mcpServers": {
-            "echo-test": {
-                "command": "python",
-                "args": [
-                    "-c", 
-                    "import sys, json; [print(json.dumps({'result': f'Echo: {json.loads(line).get(\"params\", {})}'})) for line in sys.stdin]"
-                ]
-            }
+        "server": {
+            "command": "npx",
+            "args": [
+                "-y", 
+                "@modelcontextprotocol/server-sequential-thinking"
+            ]
         }
     }
     
@@ -42,14 +40,16 @@ async def example_usage():
         print("The server will be available at: http://127.0.0.1:8000/mcp")
         print("Press Ctrl+C to stop")
         
-        # Run the server
-        await run_server(
-            config_path=config_path,
+        # Create settings
+        settings = WrapperSettings(
             host="127.0.0.1",
             port=8000,
             path="/mcp",
             log_level="INFO"
         )
+        
+        # Run the server
+        await run_server(config_path, settings)
         
     except KeyboardInterrupt:
         print("\nShutting down...")
