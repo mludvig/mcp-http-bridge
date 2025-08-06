@@ -1,9 +1,9 @@
 {
   "server": {
-    "command": "uvx",
+    "command": "npx",
     "args": [
-      "mcp-server-time",
-      "--local-timezone=UTC"
+      "-y",
+      "@modelcontextprotocol/server-everything"
     ]
   }
 }
