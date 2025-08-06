@@ -3,12 +3,12 @@
 __version__ = "0.1.0"
 
 from .config import ConfigManager
-from .models import MCPWrapperConfig, MCPServerConfig, WrapperSettings
+from .models import MCPServerConfig, MCPWrapperConfig, WrapperSettings
 from .server import MCPWrapperServer, run_server
 
 __all__ = [
     "ConfigManager",
-    "MCPWrapperConfig", 
+    "MCPWrapperConfig",
     "MCPServerConfig",
     "WrapperSettings",
     "MCPWrapperServer",

@@ -72,6 +72,48 @@ This bridge doesn't implement any security or access control.
 You'll have to configure something like `nginx` in front of it for TLS or Authentication support.
 That's beyond the scope of this project since better and more appropriate tools already exist.
 
+## Development
+
+### Local Development
+
+This project uses [uv](https://github.com/astral-sh/uv) for dependency management:
+
+```bash
+# Install dependencies
+uv sync --extra dev
+
+# Run tests
+uv run pytest
+
+# Run linting
+uv run ruff check src/ tests/
+
+# Format code
+uv run ruff format src/ tests/
+
+# Run the CLI
+uv run mcp-http-bridge --help
+```
+
+### CI/CD
+
+This project uses GitHub Actions for:
+
+- **Continuous Integration**: Runs tests, linting, and formatting checks on every push and PR
+- **Build and Release**: Automatically builds and publishes to PyPI and GHCR when tags are pushed
+- **Dependency Updates**: Dependabot keeps dependencies up to date
+
+To publish a new release:
+
+1. Update the version in `pyproject.toml`
+2. Create a git tag: `git tag v0.1.1`
+3. Push the tag: `git push origin v0.1.1`
+4. GitHub Actions will automatically build and publish to PyPI and GHCR
+
+### Publishing to PyPI
+
+The workflow uses [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) to securely publish to PyPI without storing API tokens. Make sure to configure the PyPI trusted publisher for this repository.
+
 ## Author
 
 **[Michael Ludvig](https://github.com/mludvig)**

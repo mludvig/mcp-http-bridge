@@ -5,8 +5,8 @@ import asyncio
 import logging
 from pathlib import Path
 
-from .server import run_server
 from .models import WrapperSettings
+from .server import run_server
 
 logger = logging.getLogger(__name__)
 
@@ -16,46 +16,38 @@ async def main_async():
     parser = argparse.ArgumentParser(
         description="MCP Wrapper - Expose stdio MCP servers via HTTP"
     )
-    
+
     parser.add_argument(
-        "config",
-        help="Path to the MCP configuration file (JSON format)"
+        "config", help="Path to the MCP configuration file (JSON format)"
     )
-    
+
     parser.add_argument(
-        "--host",
-        default="127.0.0.1",
-        help="Host to bind to (default: 127.0.0.1)"
+        "--host", default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)"
     )
-    
+
     parser.add_argument(
-        "--port",
-        type=int,
-        default=8000,
-        help="Port to bind to (default: 8000)"
+        "--port", type=int, default=8000, help="Port to bind to (default: 8000)"
     )
-    
+
     parser.add_argument(
-        "--path",
-        default="/mcp",
-        help="Base path for MCP endpoints (default: /mcp)"
+        "--path", default="/mcp", help="Base path for MCP endpoints (default: /mcp)"
     )
-    
+
     parser.add_argument(
         "--log-level",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         default="INFO",
-        help="Logging level (default: INFO)"
+        help="Logging level (default: INFO)",
     )
-    
+
     parser.add_argument(
         "--no-test-connection",
         action="store_true",
-        help="Skip testing MCP server connection during startup (default: test connection)"
+        help="Skip testing MCP server connection during startup (default: test connection)",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Validate config file exists
     config_path = Path(args.config)
     if not config_path.exists():
@@ -64,18 +56,15 @@ async def main_async():
 
     # Create settings from CLI arguments
     settings = WrapperSettings(
-        host=args.host,
-        port=args.port,
-        path=args.path,
-        log_level=args.log_level
+        host=args.host, port=args.port, path=args.path, log_level=args.log_level
     )
-    
+
     # Setup logging
     logging.basicConfig(
         level=getattr(logging, args.log_level),
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
-    
+
     # Run the server
     test_connection = not args.no_test_connection
     await run_server(config_path, settings, test_connection=test_connection)

@@ -14,13 +14,13 @@ def test_mcp_server_config_validation():
     assert config.args == []
     assert config.env is None
     assert config.cwd is None
-    
+
     # Config with all fields
     config = MCPServerConfig(
         command="node",
         args=["script.js", "--verbose"],
         env={"NODE_ENV": "development"},
-        cwd="/app"
+        cwd="/app",
     )
     assert config.command == "node"
     assert config.args == ["script.js", "--verbose"]
@@ -38,7 +38,7 @@ def test_mcp_wrapper_config():
     """Test MCPWrapperConfig."""
     server_config = MCPServerConfig(command="python")
     config = MCPWrapperConfig(server=server_config)
-    
+
     assert config.server is server_config
     assert config.server.command == "python"
 
@@ -46,13 +46,9 @@ def test_mcp_wrapper_config():
 def test_mcp_wrapper_config_from_dict():
     """Test MCPWrapperConfig creation from dictionary."""
     config_dict = {
-        "server": {
-            "command": "python",
-            "args": ["script.py"],
-            "env": {"DEBUG": "1"}
-        }
+        "server": {"command": "python", "args": ["script.py"], "env": {"DEBUG": "1"}}
     }
-    
+
     config = MCPWrapperConfig.model_validate(config_dict)
     assert config.server.command == "python"
     assert config.server.args == ["script.py"]
@@ -62,7 +58,7 @@ def test_mcp_wrapper_config_from_dict():
 def test_wrapper_settings_defaults():
     """Test WrapperSettings default values."""
     settings = WrapperSettings()
-    
+
     assert settings.host == "127.0.0.1"
     assert settings.port == 8000
     assert settings.path == "/mcp"
@@ -72,12 +68,9 @@ def test_wrapper_settings_defaults():
 def test_wrapper_settings_custom():
     """Test WrapperSettings with custom values."""
     settings = WrapperSettings(
-        host="0.0.0.0",
-        port=9000,
-        path="/api/mcp",
-        log_level="DEBUG"
+        host="0.0.0.0", port=9000, path="/api/mcp", log_level="DEBUG"
     )
-    
+
     assert settings.host == "0.0.0.0"
     assert settings.port == 9000
     assert settings.path == "/api/mcp"
@@ -88,7 +81,7 @@ def test_wrapper_settings_model_dump():
     """Test WrapperSettings model_dump functionality."""
     settings = WrapperSettings(host="localhost", port=8080)
     dump = settings.model_dump()
-    
+
     assert dump["host"] == "localhost"
     assert dump["port"] == 8080
     assert dump["path"] == "/mcp"
@@ -99,12 +92,12 @@ def test_server_config_field_descriptions():
     """Test that model fields have descriptions."""
     # This ensures the Field descriptions are accessible
     fields = MCPServerConfig.model_fields
-    
+
     assert "command" in fields
     assert "args" in fields
     assert "env" in fields
     assert "cwd" in fields
-    
+
     # Check that descriptions exist
     assert fields["command"].description is not None
     assert fields["args"].description is not None
@@ -113,12 +106,12 @@ def test_server_config_field_descriptions():
 def test_wrapper_config_field_descriptions():
     """Test that WrapperSettings fields have descriptions."""
     fields = WrapperSettings.model_fields
-    
+
     assert "host" in fields
     assert "port" in fields
     assert "path" in fields
     assert "log_level" in fields
-    
+
     # Check that descriptions exist
     assert fields["host"].description is not None
     assert fields["port"].description is not None

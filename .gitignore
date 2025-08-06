@@ -6,3 +6,5 @@ __pycache__
 .coverage
 .env
 *.egg-info
+.ruff_cache
+htmlcov
