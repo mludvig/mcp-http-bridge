@@ -67,7 +67,7 @@ class MCPWrapperServer:
                 )
                 logger.info("MCP server connection test successful")
             except asyncio.TimeoutError:
-                logger.error(f"MCP server startup timed out after 30 seconds")
+                logger.error("MCP server startup timed out after 30 seconds")
                 logger.error(f"Command: {server_config.command} {' '.join(server_config.args)}")
                 logger.warning("The server will continue starting, but the MCP server may not be ready immediately")
             except Exception as e:

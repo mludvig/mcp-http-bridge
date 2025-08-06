@@ -17,6 +17,8 @@ use. It's usually not very difficult but also it's not very scalable.
 A better option is to *Bridge* the STDIO local-only protocol to
 **StreamableHTTP** network-enabled protocol. And that's what this project is for.
 
+Learn more about [**STDIO** and **StreamableHTTP** MCP Protocols](https://mcpcat.io/guides/comparing-stdio-sse-streamablehttp/)
+
 ## Quick Start
 
 The [typical MCP server](https://github.com/modelcontextprotocol/servers/blob/main/src/everything/README.md)

@@ -3,7 +3,6 @@
 import json
 import tempfile
 from pathlib import Path
-import pytest
 
 # Note: These tests would require fastmcp to be installed
 # For now, they serve as a template for future testing
