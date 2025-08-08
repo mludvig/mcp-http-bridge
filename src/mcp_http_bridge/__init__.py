@@ -1,6 +1,6 @@
 """MCP HTTP Bridge - Expose stdio MCP servers via HTTP."""
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 from .config import ConfigManager
 from .models import BridgeSettings, MCPBridgeConfig, MCPServerConfig

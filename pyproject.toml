@@ -1,6 +1,6 @@
 [project]
 name = "mcp-http-bridge"
-version = "1.1.0"
+dynamic = ["version"]
 description = "Bridge for stdio-only MCP tools that exposes their stdio protocol via streamable-http"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -9,17 +9,21 @@ dependencies = [
     "pydantic>=2.0.0",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",
     "pytest-cov>=6.2.1",
     "ruff>=0.12.7",
+    "hatch>=1.14.1",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/mcp_http_bridge/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mcp_http_bridge"]
