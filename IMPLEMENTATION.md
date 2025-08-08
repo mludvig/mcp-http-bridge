@@ -1,4 +1,4 @@
-# MCP Wrapper Implementation - 1:1 Protocol Bridge
+# MCP HTTP Bridge Implementation - 1:1 Protocol Bridge
 
 ## Overview
 
@@ -37,7 +37,7 @@ transport = StdioTransport(
 )
 
 # Create proxy that exposes backend directly
-proxy = FastMCP.as_proxy(transport, name="MCP-Wrapper-Proxy")
+proxy = FastMCP.as_proxy(transport, name="MCP-HTTP-Bridge")
 
 # Run proxy with HTTP transport
 await proxy.run_async(
@@ -79,7 +79,7 @@ HTTP Client → FastMCP Proxy → StdioTransport → MCP Server
 ### Manual Testing
 
 ```bash
-# Start wrapper
+# Start HTTP bridge
 uv run mcp-http-bridge config.json --port 8001
 
 # Test HTTP endpoint
@@ -110,8 +110,8 @@ curl -X POST -H "Content-Type: application/json" \
     "command": "uvx",
     "args": ["mcp-server-git", "--repository", "."],
     "env": {
-      "GIT_AUTHOR_NAME": "MCP Wrapper",
-      "GIT_AUTHOR_EMAIL": "wrapper@example.com"
+      "GIT_AUTHOR_NAME": "MCP HTTP Bridge",
+      "GIT_AUTHOR_EMAIL": "bridge@example.com"
     },
     "cwd": "/path/to/repository"
   }
@@ -120,7 +120,7 @@ curl -X POST -H "Content-Type: application/json" \
 
 ### Multiple Instances
 
-For multiple MCP servers, run separate wrapper instances:
+For multiple MCP servers, run separate HTTP bridge instances:
 
 ```bash
 # Server 1: Sequential Thinking on port 8001

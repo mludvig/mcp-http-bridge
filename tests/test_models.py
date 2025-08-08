@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from mcp_http_bridge.models import MCPServerConfig, MCPWrapperConfig, WrapperSettings
+from mcp_http_bridge.models import BridgeSettings, MCPBridgeConfig, MCPServerConfig
 
 
 def test_mcp_server_config_validation():
@@ -34,30 +34,30 @@ def test_mcp_server_config_missing_command():
         MCPServerConfig()  # type: ignore
 
 
-def test_mcp_wrapper_config():
-    """Test MCPWrapperConfig."""
+def test_mcp_bridge_config():
+    """Test MCPBridgeConfig."""
     server_config = MCPServerConfig(command="python")
-    config = MCPWrapperConfig(server=server_config)
+    config = MCPBridgeConfig(server=server_config)
 
     assert config.server is server_config
     assert config.server.command == "python"
 
 
-def test_mcp_wrapper_config_from_dict():
-    """Test MCPWrapperConfig creation from dictionary."""
+def test_mcp_bridge_config_from_dict():
+    """Test MCPBridgeConfig creation from dictionary."""
     config_dict = {
         "server": {"command": "python", "args": ["script.py"], "env": {"DEBUG": "1"}}
     }
 
-    config = MCPWrapperConfig.model_validate(config_dict)
+    config = MCPBridgeConfig.model_validate(config_dict)
     assert config.server.command == "python"
     assert config.server.args == ["script.py"]
     assert config.server.env == {"DEBUG": "1"}
 
 
-def test_wrapper_settings_defaults():
-    """Test WrapperSettings default values."""
-    settings = WrapperSettings()
+def test_bridge_settings_defaults():
+    """Test BridgeSettings default values."""
+    settings = BridgeSettings()
 
     assert settings.host == "127.0.0.1"
     assert settings.port == 8000
@@ -65,9 +65,9 @@ def test_wrapper_settings_defaults():
     assert settings.log_level == "INFO"
 
 
-def test_wrapper_settings_custom():
-    """Test WrapperSettings with custom values."""
-    settings = WrapperSettings(
+def test_bridge_settings_custom():
+    """Test BridgeSettings with custom values."""
+    settings = BridgeSettings(
         host="0.0.0.0", port=9000, path="/api/mcp", log_level="DEBUG"
     )
 
@@ -77,9 +77,9 @@ def test_wrapper_settings_custom():
     assert settings.log_level == "DEBUG"
 
 
-def test_wrapper_settings_model_dump():
-    """Test WrapperSettings model_dump functionality."""
-    settings = WrapperSettings(host="localhost", port=8080)
+def test_bridge_settings_model_dump():
+    """Test BridgeSettings model_dump functionality."""
+    settings = BridgeSettings(host="localhost", port=8080)
     dump = settings.model_dump()
 
     assert dump["host"] == "localhost"
@@ -103,9 +103,9 @@ def test_server_config_field_descriptions():
     assert fields["args"].description is not None
 
 
-def test_wrapper_config_field_descriptions():
-    """Test that WrapperSettings fields have descriptions."""
-    fields = WrapperSettings.model_fields
+def test_bridge_config_field_descriptions():
+    """Test that BridgeSettings fields have descriptions."""
+    fields = BridgeSettings.model_fields
 
     assert "host" in fields
     assert "port" in fields

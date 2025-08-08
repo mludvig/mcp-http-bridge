@@ -52,18 +52,18 @@ uv add --extra dev package-name  # dev dependencies
 
 ### Adding New CLI Arguments
 - Update `main.py` argument parser
-- Update `WrapperSettings` model in `models.py` if needed
+- Update `BridgeSettings` model in `models.py` if needed
 - Add corresponding tests in `tests/test_main*.py`
 - Update Docker configuration if arguments affect container behavior
 
 ### Modifying Configuration
-- Update `MCPServerConfig` or `MCPWrapperConfig` in `models.py`
+- Update `MCPServerConfig` or `MCPBridgeConfig` in `models.py`
 - Update `ConfigManager` in `config.py` for loading logic
 - Add tests in `tests/test_config.py`
 - Update example config files if needed
 
 ### Server Behavior Changes
-- Modify `MCPWrapperServer` class in `server.py`
+- Modify `MCPBridgeServer` class in `server.py`
 - Update connection testing logic if needed
 - Add tests in `tests/test_server.py`
 - Consider impact on Docker deployment

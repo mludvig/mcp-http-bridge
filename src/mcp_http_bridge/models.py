@@ -1,4 +1,4 @@
-"""Data models for MCP wrapper configuration."""
+"""Data models for MCP HTTP bridge configuration."""
 
 from pydantic import BaseModel, Field
 
@@ -16,16 +16,16 @@ class MCPServerConfig(BaseModel):
     cwd: str | None = Field(default=None, description="Working directory")
 
 
-class MCPWrapperConfig(BaseModel):
-    """Main configuration for the MCP wrapper - single server passthrough."""
+class MCPBridgeConfig(BaseModel):
+    """Main configuration for the MCP HTTP bridge - single server passthrough."""
 
     server: MCPServerConfig = Field(
         ..., description="MCP server configuration for 1:1 protocol bridging"
     )
 
 
-class WrapperSettings(BaseModel):
-    """Runtime settings for the wrapper."""
+class BridgeSettings(BaseModel):
+    """Runtime settings for the HTTP bridge."""
 
     host: str = Field(default="127.0.0.1", description="Host to bind to")
     port: int = Field(default=8000, description="Port to bind to")

@@ -1,4 +1,4 @@
-"""Integration tests for the MCP wrapper."""
+"""Integration tests for the MCP HTTP Bridge."""
 
 import json
 import tempfile
@@ -12,8 +12,8 @@ def test_integration_example():
     """Example integration test structure."""
     # This would test the full integration:
     # 1. Load configuration
-    # 2. Start wrapper server
-    # 3. Make HTTP requests to the wrapper
+    # 2. Start HTTP bridge server
+    # 3. Make HTTP requests to the HTTP bridge
     # 4. Verify responses from underlying MCP servers
     # 5. Clean up
 

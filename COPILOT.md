@@ -1,6 +1,6 @@
 # Purpose and overview
 
-This project is a wrapper for MCP tools that only offer 'stdio' protocol and
+This project is an HTTP bridge for MCP tools that only offer 'stdio' protocol and
 exposes them via streamable-http via network access.
 
 It takes a config file with a standard MCP definition:

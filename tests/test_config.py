@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from mcp_http_bridge.config import ConfigManager
-from mcp_http_bridge.models import MCPWrapperConfig, WrapperSettings
+from mcp_http_bridge.models import BridgeSettings, MCPBridgeConfig
 
 
 def test_config_manager_load_valid_config():
@@ -24,7 +24,7 @@ def test_config_manager_load_valid_config():
         manager = ConfigManager(config_path)
         config = manager.load_config()
 
-        assert isinstance(config, MCPWrapperConfig)
+        assert isinstance(config, MCPBridgeConfig)
         assert config.server.command == "python"
         assert config.server.args == ["test.py"]
         assert config.server.env == {"TEST": "true"}
@@ -165,9 +165,9 @@ def test_get_server_info_with_minimal_config():
         Path(config_path).unlink()
 
 
-def test_wrapper_settings_defaults():
-    """Test default wrapper settings."""
-    settings = WrapperSettings()
+def test_bridge_settings_defaults():
+    """Test default bridge settings."""
+    settings = BridgeSettings()
 
     assert settings.host == "127.0.0.1"
     assert settings.port == 8000
@@ -175,9 +175,9 @@ def test_wrapper_settings_defaults():
     assert settings.log_level == "INFO"
 
 
-def test_wrapper_settings_overrides():
-    """Test wrapper settings with overrides."""
-    settings = WrapperSettings(
+def test_bridge_settings_overrides():
+    """Test bridge settings with overrides."""
+    settings = BridgeSettings(
         host="0.0.0.0", port=9000, path="/custom", log_level="DEBUG"
     )
 

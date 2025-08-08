@@ -9,12 +9,12 @@ from fastmcp import FastMCP
 from fastmcp.client.transports import StdioTransport
 
 from .config import ConfigManager
-from .models import WrapperSettings
+from .models import BridgeSettings
 
 logger = logging.getLogger(__name__)
 
 
-class MCPWrapperServer:
+class MCPBridgeServer:
     """
     MCP HTTP Bridge server that provides 1:1 protocol bridging between
     stdio-based MCP servers and HTTP streamable-http protocol.
@@ -79,7 +79,7 @@ class MCPWrapperServer:
                 )
                 raise RuntimeError(f"MCP server startup failed: {e}") from e
 
-        logger.info("MCP wrapper proxy setup complete")
+        logger.info("MCP HTTP bridge proxy setup complete")
 
     async def _test_connection(self, test_client):
         """Test connection to the MCP server."""
@@ -87,7 +87,7 @@ class MCPWrapperServer:
             # Try to ping - this will start the subprocess and test the connection
             await test_client.ping()
 
-    async def start(self, settings: WrapperSettings) -> None:
+    async def start(self, settings: BridgeSettings) -> None:
         """Start the HTTP server."""
         if self.proxy is None:
             raise RuntimeError("Server not setup. Call setup() first.")
@@ -97,7 +97,7 @@ class MCPWrapperServer:
             signal.signal(sig, self._signal_handler)
 
         logger.info(
-            f"Starting MCP wrapper server on {settings.host}:{settings.port}{settings.path}"
+            f"Starting MCP HTTP bridge server on {settings.host}:{settings.port}{settings.path}"
         )
 
         try:
@@ -120,18 +120,18 @@ class MCPWrapperServer:
 
     async def stop(self) -> None:
         """Stop the server gracefully."""
-        logger.info("Stopping MCP wrapper server...")
+        logger.info("Stopping MCP HTTP bridge server...")
         self._shutdown_event.set()
 
         # FastMCP handles cleanup automatically
-        logger.info("MCP wrapper server stopped")
+        logger.info("MCP HTTP bridge server stopped")
 
 
 async def run_server(
-    config_path: str | Path, settings: WrapperSettings, test_connection: bool = True
+    config_path: str | Path, settings: BridgeSettings, test_connection: bool = True
 ) -> None:
-    """Run the MCP wrapper server."""
-    server = MCPWrapperServer(config_path)
+    """Run the MCP HTTP bridge server."""
+    server = MCPBridgeServer(config_path)
 
     try:
         await server.setup(test_connection=test_connection)

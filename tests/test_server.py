@@ -8,8 +8,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from mcp_http_bridge.models import WrapperSettings
-from mcp_http_bridge.server import MCPWrapperServer, run_server
+from mcp_http_bridge.models import BridgeSettings
+from mcp_http_bridge.server import MCPBridgeServer, run_server
 
 
 @pytest.fixture
@@ -33,14 +33,14 @@ def temp_config():
 
 
 @pytest.fixture
-def wrapper_settings():
-    """Create test wrapper settings."""
-    return WrapperSettings(host="127.0.0.1", port=8000, path="/mcp", log_level="INFO")
+def bridge_settings():
+    """Create test bridge settings."""
+    return BridgeSettings(host="127.0.0.1", port=8000, path="/mcp", log_level="INFO")
 
 
 def test_server_init(temp_config):
-    """Test MCPWrapperServer initialization."""
-    server = MCPWrapperServer(temp_config)
+    """Test MCPBridgeServer initialization."""
+    server = MCPBridgeServer(temp_config)
 
     assert server.config_manager is not None
     assert server.proxy is None
@@ -50,7 +50,7 @@ def test_server_init(temp_config):
 @pytest.mark.asyncio
 async def test_setup_without_test_connection(temp_config):
     """Test server setup without connection testing."""
-    server = MCPWrapperServer(temp_config)
+    server = MCPBridgeServer(temp_config)
 
     with patch("mcp_http_bridge.server.FastMCP.as_proxy") as mock_proxy:
         mock_proxy_instance = MagicMock()
@@ -72,7 +72,7 @@ async def test_setup_without_test_connection(temp_config):
 
             # Verify proxy was created
             mock_proxy.assert_called_once_with(
-                mock_transport_instance, name="MCP-Wrapper-Proxy"
+                mock_transport_instance, name="MCP-HTTP-Bridge"
             )
 
             assert server.proxy is mock_proxy_instance
@@ -81,7 +81,7 @@ async def test_setup_without_test_connection(temp_config):
 @pytest.mark.asyncio
 async def test_setup_with_successful_test_connection(temp_config):
     """Test server setup with successful connection testing."""
-    server = MCPWrapperServer(temp_config)
+    server = MCPBridgeServer(temp_config)
 
     with patch("mcp_http_bridge.server.FastMCP.as_proxy"):
         with patch("mcp_http_bridge.server.StdioTransport"):
@@ -101,7 +101,7 @@ async def test_setup_with_successful_test_connection(temp_config):
 @pytest.mark.asyncio
 async def test_setup_with_connection_timeout(temp_config):
     """Test server setup with connection timeout."""
-    server = MCPWrapperServer(temp_config)
+    server = MCPBridgeServer(temp_config)
 
     with patch("mcp_http_bridge.server.FastMCP.as_proxy"):
         with patch("mcp_http_bridge.server.StdioTransport"):
@@ -121,7 +121,7 @@ async def test_setup_with_connection_timeout(temp_config):
 @pytest.mark.asyncio
 async def test_setup_with_connection_failure(temp_config):
     """Test server setup with connection failure."""
-    server = MCPWrapperServer(temp_config)
+    server = MCPBridgeServer(temp_config)
 
     with patch("mcp_http_bridge.server.FastMCP.as_proxy"):
         with patch("mcp_http_bridge.server.StdioTransport"):
@@ -139,7 +139,7 @@ async def test_setup_with_connection_failure(temp_config):
 @pytest.mark.asyncio
 async def test_test_connection_method(temp_config):
     """Test the _test_connection method."""
-    server = MCPWrapperServer(temp_config)
+    server = MCPBridgeServer(temp_config)
 
     mock_client = AsyncMock()
     mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -154,17 +154,17 @@ async def test_test_connection_method(temp_config):
 @pytest.mark.asyncio
 async def test_start_without_setup(temp_config):
     """Test starting server without setup."""
-    server = MCPWrapperServer(temp_config)
-    settings = WrapperSettings()
+    server = MCPBridgeServer(temp_config)
+    settings = BridgeSettings()
 
     with pytest.raises(RuntimeError, match="Server not setup"):
         await server.start(settings)
 
 
 @pytest.mark.asyncio
-async def test_start_with_setup(temp_config, wrapper_settings):
+async def test_start_with_setup(temp_config, bridge_settings):
     """Test starting server after setup."""
-    server = MCPWrapperServer(temp_config)
+    server = MCPBridgeServer(temp_config)
 
     # Mock the proxy
     mock_proxy = AsyncMock()
@@ -174,7 +174,7 @@ async def test_start_with_setup(temp_config, wrapper_settings):
         # Mock run_async to avoid actually starting server
         mock_proxy.run_async = AsyncMock()
 
-        await server.start(wrapper_settings)
+        await server.start(bridge_settings)
 
         # Verify signal handlers were set up
         assert mock_signal.call_count == 2
@@ -186,9 +186,9 @@ async def test_start_with_setup(temp_config, wrapper_settings):
 
 
 @pytest.mark.asyncio
-async def test_start_with_server_error(temp_config, wrapper_settings):
+async def test_start_with_server_error(temp_config, bridge_settings):
     """Test starting server when proxy raises an error."""
-    server = MCPWrapperServer(temp_config)
+    server = MCPBridgeServer(temp_config)
 
     mock_proxy = AsyncMock()
     mock_proxy.run_async = AsyncMock(side_effect=RuntimeError("Server error"))
@@ -196,12 +196,12 @@ async def test_start_with_server_error(temp_config, wrapper_settings):
 
     with patch("signal.signal"):
         with pytest.raises(RuntimeError, match="Server error"):
-            await server.start(wrapper_settings)
+            await server.start(bridge_settings)
 
 
 def test_signal_handler(temp_config):
     """Test signal handler functionality."""
-    server = MCPWrapperServer(temp_config)
+    server = MCPBridgeServer(temp_config)
 
     # Initially, shutdown event should not be set
     assert not server._shutdown_event.is_set()
@@ -216,7 +216,7 @@ def test_signal_handler(temp_config):
 @pytest.mark.asyncio
 async def test_stop(temp_config):
     """Test server stop functionality."""
-    server = MCPWrapperServer(temp_config)
+    server = MCPBridgeServer(temp_config)
 
     with patch("mcp_http_bridge.server.logger") as mock_logger:
         await server.stop()
@@ -227,42 +227,42 @@ async def test_stop(temp_config):
 
 
 @pytest.mark.asyncio
-async def test_run_server_success(temp_config, wrapper_settings):
+async def test_run_server_success(temp_config, bridge_settings):
     """Test successful run_server function."""
-    with patch("mcp_http_bridge.server.MCPWrapperServer") as mock_server_class:
+    with patch("mcp_http_bridge.server.MCPBridgeServer") as mock_server_class:
         mock_server = AsyncMock()
         mock_server.setup = AsyncMock()
         mock_server.start = AsyncMock()
         mock_server.stop = AsyncMock()
         mock_server_class.return_value = mock_server
 
-        await run_server(temp_config, wrapper_settings, test_connection=False)
+        await run_server(temp_config, bridge_settings, test_connection=False)
 
         mock_server.setup.assert_called_once_with(test_connection=False)
-        mock_server.start.assert_called_once_with(wrapper_settings)
+        mock_server.start.assert_called_once_with(bridge_settings)
         mock_server.stop.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_run_server_setup_failure(temp_config, wrapper_settings):
+async def test_run_server_setup_failure(temp_config, bridge_settings):
     """Test run_server when setup fails."""
-    with patch("mcp_http_bridge.server.MCPWrapperServer") as mock_server_class:
+    with patch("mcp_http_bridge.server.MCPBridgeServer") as mock_server_class:
         mock_server = AsyncMock()
         mock_server.setup = AsyncMock(side_effect=RuntimeError("Setup failed"))
         mock_server.stop = AsyncMock()
         mock_server_class.return_value = mock_server
 
         with pytest.raises(RuntimeError, match="Setup failed"):
-            await run_server(temp_config, wrapper_settings)
+            await run_server(temp_config, bridge_settings)
 
         # Ensure stop is called even on failure
         mock_server.stop.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_run_server_start_failure(temp_config, wrapper_settings):
+async def test_run_server_start_failure(temp_config, bridge_settings):
     """Test run_server when start fails."""
-    with patch("mcp_http_bridge.server.MCPWrapperServer") as mock_server_class:
+    with patch("mcp_http_bridge.server.MCPBridgeServer") as mock_server_class:
         mock_server = AsyncMock()
         mock_server.setup = AsyncMock()
         mock_server.start = AsyncMock(side_effect=RuntimeError("Start failed"))
@@ -270,7 +270,7 @@ async def test_run_server_start_failure(temp_config, wrapper_settings):
         mock_server_class.return_value = mock_server
 
         with pytest.raises(RuntimeError, match="Start failed"):
-            await run_server(temp_config, wrapper_settings)
+            await run_server(temp_config, bridge_settings)
 
         mock_server.setup.assert_called_once()
         mock_server.stop.assert_called_once()
@@ -279,7 +279,7 @@ async def test_run_server_start_failure(temp_config, wrapper_settings):
 @pytest.mark.asyncio
 async def test_setup_logs_server_info(temp_config):
     """Test that setup logs server information."""
-    server = MCPWrapperServer(temp_config)
+    server = MCPBridgeServer(temp_config)
 
     with patch("fastmcp.FastMCP.as_proxy"):
         with patch("fastmcp.client.transports.StdioTransport"):
@@ -292,14 +292,14 @@ async def test_setup_logs_server_info(temp_config):
                     "Setting up proxy for MCP server" in msg for msg in info_calls
                 )
                 assert any(
-                    "MCP wrapper proxy setup complete" in msg for msg in info_calls
+                    "MCP HTTP bridge proxy setup complete" in msg for msg in info_calls
                 )
 
 
 @pytest.mark.asyncio
 async def test_config_loading_during_setup(temp_config):
     """Test that configuration is properly loaded during setup."""
-    server = MCPWrapperServer(temp_config)
+    server = MCPBridgeServer(temp_config)
 
     with patch("mcp_http_bridge.server.FastMCP.as_proxy"):
         with patch("mcp_http_bridge.server.StdioTransport") as mock_transport:

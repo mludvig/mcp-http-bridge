@@ -1,4 +1,4 @@
-"""Main entry point for MCP wrapper.
+"""Main entry point for MCP HTTP Bridge.
 
 Enhancement: Allow providing an inline MCP server command instead of a JSON
 configuration file. If the positional argument refers to an existing file it
@@ -15,7 +15,7 @@ import shlex
 import tempfile
 from pathlib import Path
 
-from .models import WrapperSettings
+from .models import BridgeSettings
 from .server import run_server
 
 logger = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ async def main_async():
 
     # Handle config file vs inline command
     inline_temp_file: Path | None = None
-    
+
     if args.config:
         # Use provided config file
         config_path = Path(args.config)
@@ -95,13 +95,15 @@ async def main_async():
             inline_temp_file = Path(tmp.name)
             config_path = inline_temp_file
             logger.info(
-                "Using inline command as configuration: %s %s", command, " ".join(cmd_args)
+                "Using inline command as configuration: %s %s",
+                command,
+                " ".join(cmd_args),
             )
         finally:
             tmp.close()
 
     # Create settings from CLI arguments
-    settings = WrapperSettings(
+    settings = BridgeSettings(
         host=args.host, port=args.port, path=args.path, log_level=args.log_level
     )
 

@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from mcp_http_bridge.main import main, main_async
-from mcp_http_bridge.models import WrapperSettings
+from mcp_http_bridge.models import BridgeSettings
 
 
 @pytest.fixture
@@ -40,7 +40,7 @@ async def test_main_async_minimal_args(temp_config):
             # Check the arguments passed to run_server - it uses keyword args
             mock_run.assert_called_with(
                 Path(temp_config),
-                WrapperSettings(
+                BridgeSettings(
                     host="127.0.0.1", port=8000, path="/mcp", log_level="INFO"
                 ),
                 test_connection=True,
@@ -77,7 +77,7 @@ async def test_main_async_custom_args(temp_config):
             # Check the arguments passed to run_server
             mock_run.assert_called_with(
                 Path(temp_config),
-                WrapperSettings(
+                BridgeSettings(
                     host="0.0.0.0", port=9000, path="/custom", log_level="DEBUG"
                 ),
                 test_connection=False,
@@ -204,7 +204,9 @@ def test_argument_parser_custom_values():
 @pytest.mark.asyncio
 async def test_logging_setup(temp_config):
     """Test that logging is properly configured."""
-    with patch("sys.argv", ["mcp-http-bridge", "--config", temp_config, "--log-level", "DEBUG"]):
+    with patch(
+        "sys.argv", ["mcp-http-bridge", "--config", temp_config, "--log-level", "DEBUG"]
+    ):
         with patch("mcp_http_bridge.main.run_server", new_callable=AsyncMock):
             with patch("logging.basicConfig") as mock_logging:
                 await main_async()

@@ -1,16 +1,16 @@
-"""MCP Wrapper - Expose stdio MCP servers via HTTP."""
+"""MCP HTTP Bridge - Expose stdio MCP servers via HTTP."""
 
 __version__ = "1.1.0"
 
 from .config import ConfigManager
-from .models import MCPServerConfig, MCPWrapperConfig, WrapperSettings
-from .server import MCPWrapperServer, run_server
+from .models import BridgeSettings, MCPBridgeConfig, MCPServerConfig
+from .server import MCPBridgeServer, run_server
 
 __all__ = [
     "ConfigManager",
-    "MCPWrapperConfig",
+    "MCPBridgeConfig",
     "MCPServerConfig",
-    "WrapperSettings",
-    "MCPWrapperServer",
+    "BridgeSettings",
+    "MCPBridgeServer",
     "run_server",
 ]
