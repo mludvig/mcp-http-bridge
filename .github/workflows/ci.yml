@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.13"]
-    
+
     steps:
       - uses: actions/checkout@v4
 
@@ -38,5 +38,8 @@ jobs:
       - name: Run tests
         run: uv run pytest --cov=src --cov-report=term-missing
 
-      - name: Test CLI
-        run: timeout --preserve-status 10s uv run mcp-http-bridge config-time.json 
+      - name: Test CLI with config-time.json
+        run: timeout --preserve-status 5s uv run mcp-http-bridge --config config-time.json
+
+      - name: Test CLI with a command
+        run: timeout --preserve-status 5s uv run mcp-http-bridge --command "uvx mcp-server-time"
