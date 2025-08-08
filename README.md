@@ -9,7 +9,7 @@ one reason or another their developers never bothered to implement one of the
 two network-enabled modes: SSE or StreamableHTTP.  In most cases that's fine -
 _Claude Code_ or _Cursor_  or any other modern IDE supports MCP over `stdio`.
 But when your AI application is not a stock-standard IDE that needs access to
-some MCP server over the network you've got a problem. 
+some MCP server over the network you've got a problem.
 
 One option is to add Streaming HTTP support to the MCP servers that you want to
 use. It's usually not very difficult but also it's not very scalable.
@@ -38,17 +38,27 @@ will provide a sample config to use. It could be something like:
 
 We can use the same `config.json` with `mcp-network-bridge`:
 
+**Run directly with uvx**
+
+```bash
+uvx mcp-http-bridge --config config.json
+```
+
+Or specify the command as a parameter:
+```bash
+uvx mcp-http-bridge --command "npx -y @modelcontextprotocol/server-everything"
+```
+
+We can also run it in a Docker container with both Python (uvx) and Node.JS (npx)
+environment pre-installed:
+
 **Run with Docker**:
 
 ```bash
 docker run --rm -it -p 8000:8000 -v $(pwd)/config.json:/app/config.json ghcr.io/mludvig/mcp-http-bridge
 ```
 
-**Or use docker-compose**:
-
-```bash
-docker-compose up
-```
+Check our sample `docker-compose.yml` for a Docker Compose example.
 
 Your MCP server is now available at `http://localhost:8000/mcp/`.
 Test it out with [MCP Inspector](https://github.com/modelcontextprotocol/inspector).
