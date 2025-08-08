@@ -126,8 +126,7 @@ class MCPBridgeServer:
         logger.info("MCP HTTP bridge server stopped")
 
 
-async def run_server(
-    config_path: str | Path, settings: BridgeSettings) -> None:
+async def run_server(config_path: str | Path, settings: BridgeSettings) -> None:
     """Run the MCP HTTP bridge server."""
     server = MCPBridgeServer(config_path)
 

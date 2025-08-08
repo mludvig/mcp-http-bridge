@@ -284,12 +284,15 @@ async def test_setup_logs_server_info(temp_config):
                     await server.setup()
 
                     # Check that appropriate log messages were called
-                    info_calls = [call[0][0] for call in mock_logger.info.call_args_list]
+                    info_calls = [
+                        call[0][0] for call in mock_logger.info.call_args_list
+                    ]
                     assert any(
                         "Setting up proxy for MCP server" in msg for msg in info_calls
                     )
                     assert any(
-                        "MCP HTTP bridge proxy setup complete" in msg for msg in info_calls
+                        "MCP HTTP bridge proxy setup complete" in msg
+                        for msg in info_calls
                     )
 
 
