@@ -29,5 +29,6 @@ USER mcp
 # Expose port
 EXPOSE 8000
 
-# Run the server
-CMD ["uv", "run", "mcp-http-bridge", "--config", "config.json", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT [ "uv", "run", "mcp-http-bridge", "--host", "0.0.0.0" ]
+
+# CMD ["--config", "config.json", "--host", "0.0.0.0", "--port", "8000"]
