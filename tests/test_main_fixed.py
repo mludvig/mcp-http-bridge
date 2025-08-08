@@ -28,7 +28,7 @@ def temp_config():
 @pytest.mark.asyncio
 async def test_main_async_minimal_args(temp_config):
     """Test main_async with minimal arguments."""
-    with patch("sys.argv", ["mcp-http-bridge", temp_config]):
+    with patch("sys.argv", ["mcp-http-bridge", "--config", temp_config]):
         with patch(
             "mcp_http_bridge.main.run_server", new_callable=AsyncMock
         ) as mock_run:
@@ -52,6 +52,7 @@ async def test_main_async_custom_args(temp_config):
     """Test main_async with custom arguments."""
     args = [
         "mcp-http-bridge",
+        "--config",
         temp_config,
         "--host",
         "0.0.0.0",
@@ -86,7 +87,7 @@ async def test_main_async_custom_args(temp_config):
 @pytest.mark.asyncio
 async def test_main_async_config_not_found():
     """Test main_async with non-existent config file."""
-    with patch("sys.argv", ["mcp-http-bridge", "nonexistent.json"]):
+    with patch("sys.argv", ["mcp-http-bridge", "--config", "nonexistent.json"]):
         with patch("builtins.print") as mock_print:
             result = await main_async()
 
@@ -98,7 +99,7 @@ async def test_main_async_config_not_found():
 @pytest.mark.asyncio
 async def test_main_async_server_error(temp_config):
     """Test main_async when server raises an error."""
-    with patch("sys.argv", ["mcp-http-bridge", temp_config]):
+    with patch("sys.argv", ["mcp-http-bridge", "--config", temp_config]):
         with patch(
             "mcp_http_bridge.main.run_server", new_callable=AsyncMock
         ) as mock_run:
@@ -203,7 +204,7 @@ def test_argument_parser_custom_values():
 @pytest.mark.asyncio
 async def test_logging_setup(temp_config):
     """Test that logging is properly configured."""
-    with patch("sys.argv", ["mcp-http-bridge", temp_config, "--log-level", "DEBUG"]):
+    with patch("sys.argv", ["mcp-http-bridge", "--config", temp_config, "--log-level", "DEBUG"]):
         with patch("mcp_http_bridge.main.run_server", new_callable=AsyncMock):
             with patch("logging.basicConfig") as mock_logging:
                 await main_async()

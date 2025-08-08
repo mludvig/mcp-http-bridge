@@ -1,6 +1,6 @@
 """MCP Wrapper - Expose stdio MCP servers via HTTP."""
 
-__version__ = "0.1.0"
+__version__ = "1.1.0"
 
 from .config import ConfigManager
 from .models import MCPServerConfig, MCPWrapperConfig, WrapperSettings

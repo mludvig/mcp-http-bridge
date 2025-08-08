@@ -16,10 +16,8 @@ logger = logging.getLogger(__name__)
 
 class MCPWrapperServer:
     """
-    MCP Wrapper server that provides 1:1 protocol bridging.
-
-    Uses FastMCP's proxy capabilities to bridge stdio-based MCP servers
-    to HTTP streamable-http protocol without any indirection.
+    MCP HTTP Bridge server that provides 1:1 protocol bridging between
+    stdio-based MCP servers and HTTP streamable-http protocol.
     """
 
     def __init__(self, config_path: str | Path):
@@ -44,7 +42,7 @@ class MCPWrapperServer:
         )
 
         # Create FastMCP proxy that exposes the backend server directly
-        self.proxy = FastMCP.as_proxy(transport, name="MCP-Wrapper-Proxy")
+        self.proxy = FastMCP.as_proxy(transport, name="MCP-HTTP-Bridge")
 
         # Test the connection during startup to catch issues early
         if test_connection:

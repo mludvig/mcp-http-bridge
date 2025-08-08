@@ -1,8 +1,18 @@
-"""Main entry point for MCP wrapper."""
+"""Main entry point for MCP wrapper.
+
+Enhancement: Allow providing an inline MCP server command instead of a JSON
+configuration file. If the positional argument refers to an existing file it
+is treated as before. Otherwise (and if it does not end with .json) it is
+interpreted as a shell command line which is converted into an ephemeral
+configuration file internally.
+"""
 
 import argparse
 import asyncio
+import json
 import logging
+import shlex
+import tempfile
 from pathlib import Path
 
 from .models import WrapperSettings
@@ -14,11 +24,20 @@ logger = logging.getLogger(__name__)
 async def main_async():
     """Async main function."""
     parser = argparse.ArgumentParser(
-        description="MCP Wrapper - Expose stdio MCP servers via HTTP"
+        description="MCP HTTP Bridge - Expose stdio MCP servers via HTTP"
     )
 
-    parser.add_argument(
-        "config", help="Path to the MCP configuration file (JSON format)"
+    # Create a mutually exclusive group for config vs command
+    config_group = parser.add_mutually_exclusive_group(required=True)
+    config_group.add_argument(
+        "--config",
+        help="Path to the MCP configuration file (JSON format)",
+        metavar="FILE",
+    )
+    config_group.add_argument(
+        "--command",
+        help="Inline MCP server command to run (e.g., 'uvx mcp-server-time --local-timezone=UTC')",
+        metavar="CMD",
     )
 
     parser.add_argument(
@@ -48,11 +67,38 @@ async def main_async():
 
     args = parser.parse_args()
 
-    # Validate config file exists
-    config_path = Path(args.config)
-    if not config_path.exists():
-        print(f"Error: Configuration file not found: {config_path}")
-        return 1
+    # Handle config file vs inline command
+    inline_temp_file: Path | None = None
+    
+    if args.config:
+        # Use provided config file
+        config_path = Path(args.config)
+        if not config_path.exists():
+            print(f"Error: Configuration file not found: {config_path}")
+            return 1
+    else:
+        # Use inline command
+        parts = shlex.split(args.command)
+        if not parts:
+            print("Error: Empty inline command specified")
+            return 1
+        command, *cmd_args = parts
+        inline_config = {"server": {"command": command, "args": cmd_args}}
+
+        # Create a temporary file holding the generated config
+        tmp = tempfile.NamedTemporaryFile(
+            mode="w", prefix="mcp-inline-", suffix=".json", delete=False
+        )
+        try:
+            json.dump(inline_config, tmp)
+            tmp.flush()
+            inline_temp_file = Path(tmp.name)
+            config_path = inline_temp_file
+            logger.info(
+                "Using inline command as configuration: %s %s", command, " ".join(cmd_args)
+            )
+        finally:
+            tmp.close()
 
     # Create settings from CLI arguments
     settings = WrapperSettings(
@@ -67,12 +113,20 @@ async def main_async():
 
     # Run the server
     test_connection = not args.no_test_connection
-    await run_server(config_path, settings, test_connection=test_connection)
-    return 0
+    try:
+        await run_server(config_path, settings, test_connection=test_connection)
+        return 0
+    finally:
+        # Clean up temporary inline config file if used
+        if inline_temp_file and inline_temp_file.exists():
+            try:
+                inline_temp_file.unlink()
+            except Exception:  # pragma: no cover - best effort cleanup
+                pass
 
 
 def main():
-    """Main entry point for the MCP wrapper CLI."""
+    """Main entry point for the MCP HTTP Bridge CLI."""
     try:
         return asyncio.run(main_async())
     except KeyboardInterrupt:
