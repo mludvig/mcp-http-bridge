@@ -48,8 +48,8 @@ def test_server_init(temp_config):
 
 
 @pytest.mark.asyncio
-async def test_setup_without_test_connection(temp_config):
-    """Test server setup without connection testing."""
+async def test_setup_basic(temp_config):
+    """Test basic server setup."""
     server = MCPBridgeServer(temp_config)
 
     with patch("mcp_http_bridge.server.FastMCP.as_proxy") as mock_proxy:
@@ -60,31 +60,6 @@ async def test_setup_without_test_connection(temp_config):
             mock_transport_instance = MagicMock()
             mock_transport.return_value = mock_transport_instance
 
-            await server.setup(test_connection=False)
-
-            # Verify transport was created with correct parameters
-            mock_transport.assert_called_once_with(
-                command="python",
-                args=["-c", "print('test')"],
-                env={"TEST": "true"},
-                cwd="/tmp",
-            )
-
-            # Verify proxy was created
-            mock_proxy.assert_called_once_with(
-                mock_transport_instance, name="MCP-HTTP-Bridge"
-            )
-
-            assert server.proxy is mock_proxy_instance
-
-
-@pytest.mark.asyncio
-async def test_setup_with_successful_test_connection(temp_config):
-    """Test server setup with successful connection testing."""
-    server = MCPBridgeServer(temp_config)
-
-    with patch("mcp_http_bridge.server.FastMCP.as_proxy"):
-        with patch("mcp_http_bridge.server.StdioTransport"):
             with patch("fastmcp.Client") as mock_client_class:
                 mock_client = AsyncMock()
                 mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -92,10 +67,25 @@ async def test_setup_with_successful_test_connection(temp_config):
                 mock_client.ping = AsyncMock()
                 mock_client_class.return_value = mock_client
 
-                await server.setup(test_connection=True)
+                await server.setup()
+
+                # Verify transport was created with correct parameters
+                mock_transport.assert_called_once_with(
+                    command="python",
+                    args=["-c", "print('test')"],
+                    env={"TEST": "true"},
+                    cwd="/tmp",
+                )
+
+                # Verify proxy was created
+                mock_proxy.assert_called_once_with(
+                    mock_transport_instance, name="MCP-HTTP-Bridge"
+                )
 
                 # Verify connection test was attempted
                 mock_client.ping.assert_called_once()
+
+                assert server.proxy is mock_proxy_instance
 
 
 @pytest.mark.asyncio
@@ -112,7 +102,7 @@ async def test_setup_with_connection_timeout(temp_config):
 
                 with patch("mcp_http_bridge.server.logger") as mock_logger:
                     # Should not raise exception, just log warning
-                    await server.setup(test_connection=True)
+                    await server.setup()
 
                     mock_logger.error.assert_called()
                     mock_logger.warning.assert_called()
@@ -133,7 +123,7 @@ async def test_setup_with_connection_failure(temp_config):
                 mock_client_class.return_value = mock_client
 
                 with pytest.raises(RuntimeError, match="MCP server startup failed"):
-                    await server.setup(test_connection=True)
+                    await server.setup()
 
 
 @pytest.mark.asyncio
@@ -236,9 +226,9 @@ async def test_run_server_success(temp_config, bridge_settings):
         mock_server.stop = AsyncMock()
         mock_server_class.return_value = mock_server
 
-        await run_server(temp_config, bridge_settings, test_connection=False)
+        await run_server(temp_config, bridge_settings)
 
-        mock_server.setup.assert_called_once_with(test_connection=False)
+        mock_server.setup.assert_called_once()
         mock_server.start.assert_called_once_with(bridge_settings)
         mock_server.stop.assert_called_once()
 
@@ -283,17 +273,24 @@ async def test_setup_logs_server_info(temp_config):
 
     with patch("fastmcp.FastMCP.as_proxy"):
         with patch("fastmcp.client.transports.StdioTransport"):
-            with patch("mcp_http_bridge.server.logger") as mock_logger:
-                await server.setup(test_connection=False)
+            with patch("fastmcp.Client") as mock_client_class:
+                mock_client = AsyncMock()
+                mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+                mock_client.__aexit__ = AsyncMock(return_value=None)
+                mock_client.ping = AsyncMock()
+                mock_client_class.return_value = mock_client
 
-                # Check that appropriate log messages were called
-                info_calls = [call[0][0] for call in mock_logger.info.call_args_list]
-                assert any(
-                    "Setting up proxy for MCP server" in msg for msg in info_calls
-                )
-                assert any(
-                    "MCP HTTP bridge proxy setup complete" in msg for msg in info_calls
-                )
+                with patch("mcp_http_bridge.server.logger") as mock_logger:
+                    await server.setup()
+
+                    # Check that appropriate log messages were called
+                    info_calls = [call[0][0] for call in mock_logger.info.call_args_list]
+                    assert any(
+                        "Setting up proxy for MCP server" in msg for msg in info_calls
+                    )
+                    assert any(
+                        "MCP HTTP bridge proxy setup complete" in msg for msg in info_calls
+                    )
 
 
 @pytest.mark.asyncio
@@ -303,12 +300,19 @@ async def test_config_loading_during_setup(temp_config):
 
     with patch("mcp_http_bridge.server.FastMCP.as_proxy"):
         with patch("mcp_http_bridge.server.StdioTransport") as mock_transport:
-            await server.setup(test_connection=False)
+            with patch("fastmcp.Client") as mock_client_class:
+                mock_client = AsyncMock()
+                mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+                mock_client.__aexit__ = AsyncMock(return_value=None)
+                mock_client.ping = AsyncMock()
+                mock_client_class.return_value = mock_client
 
-            # Verify that the transport was created with values from config
-            mock_transport.assert_called_once_with(
-                command="python",
-                args=["-c", "print('test')"],
-                env={"TEST": "true"},
-                cwd="/tmp",
-            )
+                await server.setup()
+
+                # Verify that the transport was created with values from config
+                mock_transport.assert_called_once_with(
+                    command="python",
+                    args=["-c", "print('test')"],
+                    env={"TEST": "true"},
+                    cwd="/tmp",
+                )

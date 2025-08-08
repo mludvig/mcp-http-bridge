@@ -27,9 +27,8 @@ async def test_main_async_inline_command_simple():
             mock_run.assert_called_with(
                 called_path,
                 BridgeSettings(
-                    host="127.0.0.1", port=8000, path="/mcp", log_level="INFO"
+                    host="127.0.0.1", port=8000, path="/mcp/", log_level="INFO"
                 ),
-                test_connection=True,
             )
 
 

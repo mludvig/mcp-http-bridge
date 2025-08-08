@@ -49,7 +49,7 @@ async def main_async():
     )
 
     parser.add_argument(
-        "--path", default="/mcp", help="Base path for MCP endpoints (default: /mcp)"
+        "--path", default="/mcp/", help="Base path for MCP endpoints (default: /mcp)"
     )
 
     parser.add_argument(
@@ -57,12 +57,6 @@ async def main_async():
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         default="INFO",
         help="Logging level (default: INFO)",
-    )
-
-    parser.add_argument(
-        "--no-test-connection",
-        action="store_true",
-        help="Skip testing MCP server connection during startup (default: test connection)",
     )
 
     args = parser.parse_args()
@@ -114,9 +108,8 @@ async def main_async():
     )
 
     # Run the server
-    test_connection = not args.no_test_connection
     try:
-        await run_server(config_path, settings, test_connection=test_connection)
+        await run_server(config_path, settings)
         return 0
     finally:
         # Clean up temporary inline config file if used

@@ -41,9 +41,8 @@ async def test_main_async_minimal_args(temp_config):
             mock_run.assert_called_with(
                 Path(temp_config),
                 BridgeSettings(
-                    host="127.0.0.1", port=8000, path="/mcp", log_level="INFO"
+                    host="127.0.0.1", port=8000, path="/mcp/", log_level="INFO"
                 ),
-                test_connection=True,
             )
 
 
@@ -62,7 +61,6 @@ async def test_main_async_custom_args(temp_config):
         "/custom",
         "--log-level",
         "DEBUG",
-        "--no-test-connection",
     ]
 
     with patch("sys.argv", args):
@@ -80,7 +78,6 @@ async def test_main_async_custom_args(temp_config):
                 BridgeSettings(
                     host="0.0.0.0", port=9000, path="/custom", log_level="DEBUG"
                 ),
-                test_connection=False,
             )
 
 
@@ -156,7 +153,6 @@ def test_argument_parser_defaults():
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--path", default="/mcp")
     parser.add_argument("--log-level", default="INFO")
-    parser.add_argument("--no-test-connection", action="store_true")
 
     args = parser.parse_args(["test.json"])
 
@@ -164,7 +160,6 @@ def test_argument_parser_defaults():
     assert args.port == 8000
     assert args.path == "/mcp"
     assert args.log_level == "INFO"
-    assert args.no_test_connection is False
 
 
 def test_argument_parser_custom_values():
@@ -177,7 +172,6 @@ def test_argument_parser_custom_values():
     parser.add_argument(
         "--log-level", choices=["DEBUG", "INFO", "WARNING", "ERROR"], default="INFO"
     )
-    parser.add_argument("--no-test-connection", action="store_true")
 
     args = parser.parse_args(
         [
@@ -190,7 +184,6 @@ def test_argument_parser_custom_values():
             "/custom",
             "--log-level",
             "DEBUG",
-            "--no-test-connection",
         ]
     )
 
@@ -198,7 +191,6 @@ def test_argument_parser_custom_values():
     assert args.port == 9000
     assert args.path == "/custom"
     assert args.log_level == "DEBUG"
-    assert args.no_test_connection is True
 
 
 @pytest.mark.asyncio
