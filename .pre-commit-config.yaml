@@ -1,0 +1,71 @@
+# Pre-commit hooks configuration for mcp-http-bridge
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+
+default_install_hook_types: [pre-commit, pre-push]
+default_stages: [pre-commit]
+
+repos:
+  # Pre-commit hooks repository with general utilities
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-merge-conflict
+      - id: check-ast
+      - id: debug-statements
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+
+  # Ruff linter and formatter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.8
+    hooks:
+      # Run the linter with auto-fix
+      - id: ruff-check
+        args: [--fix]
+      # Run the formatter
+      - id: ruff-format
+
+  # Local hooks for project-specific tasks
+  - repo: local
+    hooks:
+      # Run pytest test suite
+      - id: pytest
+        name: Run tests with pytest
+        entry: uv run pytest
+        language: system
+        types: [python]
+        pass_filenames: false
+        stages: [pre-commit, pre-push]
+        always_run: true
+        verbose: true
+
+      # Run pytest with coverage on pre-push
+      - id: pytest-coverage
+        name: Run tests with coverage
+        entry: uv run pytest --cov=src/mcp_http_bridge --cov-report=term-missing --cov-fail-under=80
+        language: system
+        types: [python]
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true
+        verbose: true
+
+      # Check that dependencies are properly installed
+      - id: check-deps
+        name: Check dependencies
+        entry: uv sync --group dev
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+fail_fast: false

@@ -16,6 +16,7 @@ dev = [
     "pytest-cov>=6.2.1",
     "ruff>=0.12.7",
     "hatch>=1.14.1",
+    "pre-commit>=4.2.0",
 ]
 
 [build-system]
